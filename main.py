@@ -324,7 +324,7 @@ def once():
 
         if containing(question_id):
             if random.randint(0, 101) < random_error_percent:
-                try_anwser = random.choice(question_answers))
+                try_anwser = random.choice(question_answers)
                 print(f'Answer found: {try_anwser} but removed')
             else: 
                 try_anwser = getting(question_id)
