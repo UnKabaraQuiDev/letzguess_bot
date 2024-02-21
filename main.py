@@ -1,4 +1,4 @@
-import requests, json, random, sys
+import requests, json, random, sys, time
 
 main_url = 'https://letzguess.lu/'
 api_url = 'https://api.letzguess.lu/'
@@ -59,23 +59,6 @@ def build_header():
 def request_get(url):
     # print(f'cooks: {cooks if add_cookies else None}')
     # headers = build_header('GET', url)
-    """
-    GET /user/profile HTTP/1.1
-    Host: api.letzguess.lu
-    User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0
-    Accept: application/json, text/plain, */*
-    Accept-Language: en-US,en;q=0.5
-    Accept-Encoding: gzip, deflate, br
-    Authorization: Bearer eyJhbGciOiJIUzI1Ni==InR5cCI6IkpXVCJ9.eyJVc2VySW5mbyI6eyJ1c2VybmFtZSI6IkxlQkdEdTY5IiwiZW1haWwiOiJwb3VjeS5jeTExM0BnbWFpbC5jb20iLCJyb2xlcyI6WzBdLCJsYW5ndWFnZSI6ImVuIn0sImlhdCI6MTcwODQ0MTExNSwiZXhwIjoxNzA4NDQyOTE1fQ.P35r3HAFKZTwVFg1QStYOBTa-K1of5SWGn4qccnpBQ4
-    Origin: https://www.letzguess.lu
-    Connection: keep-alive
-    Referer: https://www.letzguess.lu/
-    Cookie: jwt=eyJhbGciOiJIUzI1Ni==InR5cCI6IkpXVCJ9.eyJVc2VySW5mbyI6eyJ1c2VybmFtZSI6IkxlQkdEdTY5IiwiZW1haWwiOiJwb3VjeS5jeTExM0BnbWFpbC5jb20ifSwiaWF0IjoxNzA4NDQxMTE1LCJleHAiOjE3MDg2MTM5MTV9.SJ8j4qIuOYwsok5AaES-Fj1yBKZeFjlR_cNW9oaFUa8
-    Sec-Fetch-Dest: empty
-    Sec-Fetch-Mode: cors
-    Sec-Fetch-Site: same-site
-    If-None-Match: W/"9b-xbPeGl32iYz0ApGYR68JlSedqDQ"
-    """
     response = session.get(url)
     last_request = response
     if LOG:
@@ -99,6 +82,9 @@ def data(request):
     return request.text
 
 def log(response):
+    if response == None:
+        print(f'--- Response is None')
+        return
     print(f'--- {response.url} -> {response.status_code}')
     print(f' |- Headers: {response.request.headers}')
     print(f' |- Cookies: {session.cookies.get_dict()}')
@@ -193,6 +179,18 @@ def req_next_question():
     response = request_post(f'{api_url}challenge/next-question')
     return response
 
+def delay(ms):
+    print(f'Waiting for {ms}ms')
+    time.sleep(ms/1000)
+
+random_error_percent = 28 # / 100%
+random_delay_next_question_ms_min = 800
+random_delay_next_question_ms_max = 3500
+random_delay_new_round_ms_min = 1000
+random_delay_new_round_ms_max = 3000
+random_delay_answer_ms_min = 800
+random_delay_answer_ms_max = 3500
+
 def once():
     global current_round_id, answers
         
@@ -217,6 +215,9 @@ def once():
                 return False
             json = to_json(update_round)
             if code(update_round) in {410, 404} and json['message'] in {'The round time has expired!', 'No active round found'}:
+                
+                # Delaying new game creation
+                delay(random.randint(random_delay_new_round_ms_min, random_delay_new_round_ms_max))
 
                 new_game = req_new_round('LU')
                 json = to_json(new_game)
@@ -272,6 +273,9 @@ def once():
             check_latest = False
 
         if next:
+            # Delaying next question
+            delay(random.randint(random_delay_next_question_ms_min, random_delay_next_question_ms_max))
+
             next_question = req_next_question()
             json = to_json(next_question)
             if code(next_question) == 404 and json['message'] == "No active round found":
@@ -319,8 +323,12 @@ def once():
         saved = None
 
         if containing(question_id):
-            try_anwser = getting(question_id)
-            print(f'Answer found: {try_anwser}')
+            if random.randint(0, 101) < random_error_percent:
+                try_anwser = random.choice(question_answers.remove(getting(question_id)))
+                print(f'Answer found: {try_anwser} but removed')
+            else: 
+                try_anwser = getting(question_id)
+                print(f'Answer found: {try_anwser}')
             saved = True
             # answer = req_answer(found_answer)
             # json_answer = to_json(answer)
@@ -329,6 +337,10 @@ def once():
             print(f'No answer found, trying random ({try_anwser})')
             saved = False
 
+        # Delaying answer
+        delay(random.randint(random_delay_answer_ms_min, random_delay_answer_ms_max))
+
+        # Sending answer
         answer = req_answer(question_id, try_anwser)
         json_answer = to_json(answer)
 
