@@ -262,11 +262,11 @@ def once():
             update_round = req_update_round()
             json = to_json(update_round)
             if code(update_round) == 410 and json['message'] == 'The round time has expired!' or json['message'] == 'No active round found':
-                log(current_round)
+                log(update_round)
                 print('Error when updating round after latest. 1')
                 return False
             elif json['message'] == 'Round updated successfully':
-                log(current_round)
+                log(update_round)
                 print('Successfully updated round after latest.')
             ## 
             
