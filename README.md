@@ -18,9 +18,12 @@ This version does not work anymore, it will probably get you banned.
 * Press `F` to auto-fill the correct answer (if saved)
 * Press `Space` to continue to the next question.
 <br>
-*Note: This scripts will make a lot of mistakes at the beginning but will gradually become better as it saves the correct answers.*
+**Note**: This scripts will make a lot of mistakes at the beginning but will gradually become better as it saves the correct answers.
+
 ### Settings:
+
 There are a few settings in the tampermonkey script file:
+
 * `random_failure`: The percentage rate to make a mistake even if the answer is known.
 * `max_streak`: Limit the maximum correct answer streak.
 * `no_error`: Override `random_failure`.
