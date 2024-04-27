@@ -10,6 +10,10 @@
 (function() {
     'use strict';
 
+    const random_failure = 14; // /100%
+    const max_streak = 160;
+    const no_error = false;
+
     var round_env = undefined;
     var question_id = undefined;
     var saved_answer = undefined;
@@ -77,10 +81,6 @@
         click(nextBtn);
     }
 
-
-    const random_failure = 28; // /100%
-    const max_streak = 160;
-    const no_error = true;
 
     // Function to run when the shortcut is pressed
     async function runScript() {
